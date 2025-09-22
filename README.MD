@@ -13,7 +13,7 @@ The focus of this project is on **reproducibility, deployment craftsmanship, and
 ```bash
 git clone https://github.com/Maxkaizo/pred_maint.git
 cd pred_maint
-````
+```
 
 ### 2. Environment variables
 
@@ -39,6 +39,8 @@ Running the following command spins up all required services:
 ```bash
 docker compose up --build
 ```
+This may take a while on the first run, as Docker will download images and initialize all services.  
+It is possible that not all containers are ready at once on the first attempt — if so, just retry `docker compose up`.
 
 Services included:
 
@@ -48,6 +50,8 @@ Services included:
 * **LocalStack** (S3 emulation for datalake & artifacts)
 * **Training pipeline** (runs automatically on startup)
 * **Inference API** (REST service for predictions at [http://localhost:8000](http://localhost:8000))
+
+![System Architecture](docs/architecture.png)
 
 ### 4. Test inference
 
