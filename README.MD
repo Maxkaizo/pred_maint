@@ -39,8 +39,7 @@ Running the following command spins up all required services:
 ```bash
 docker compose up --build
 ```
-This may take a while on the first run, as Docker will download images and initialize all services.  
-It is possible that not all containers are ready at once on the first attempt — if so, just retry `docker compose up`.
+This may take a while on the first run, as Docker will download images and initialize all services.
 
 Services included:
 
