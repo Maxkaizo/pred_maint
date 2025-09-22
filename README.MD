@@ -61,7 +61,7 @@ curl -X POST http://localhost:8000/predict \
 
 ---
 
-## 📂 Repository Structure
+## Repository Structure
 
 ```
 .
