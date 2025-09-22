@@ -1,4 +1,4 @@
-# Design Notes (Final Version)
+# Design Notes
 
 These notes document **why** each decision was made.  
 They complement the TDD (which focuses on **what** and **how**).

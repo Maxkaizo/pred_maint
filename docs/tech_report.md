@@ -18,7 +18,7 @@
 - **Evaluation metric:** prioritized **F1 score** to balance precision and recall in an imbalanced dataset.  
 - **Models selected:** Logistic Regression (baseline), LightGBM and CatBoost as main candidates.  
 - **Reproducibility:** Docker + Prefect orchestration instead of manual Makefile targets, to guarantee one-command execution.  
-- **design_notes:** design_notes.md file includes greater detail on all decisions rationale
+- **design_notes:** [design_notes.md](design_notes.md)file includes greater detail on all decisions rationale
 ---
 
 ## 3. Trade-offs
