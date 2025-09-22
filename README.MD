@@ -11,8 +11,8 @@ The focus of this project is on **reproducibility, deployment craftsmanship, and
 
 ### 1. Clone the repository
 ```bash
-git clone https://github.com/<your-user>/predictive-maintenance.git
-cd predictive-maintenance
+git clone https://github.com/Maxkaizo/pred_maint.git
+cd pred_maint
 ````
 
 ### 2. Environment variables
