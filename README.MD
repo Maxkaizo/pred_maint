@@ -7,7 +7,7 @@ The focus of this project is on **reproducibility, deployment craftsmanship, and
 
 ---
 
-## 🚀 Quick Start
+##  Quick Start
 
 ### 1. Clone the repository
 ```bash
@@ -81,7 +81,7 @@ curl -X POST http://localhost:8000/predict \
 
 ---
 
-## 🧩 Components
+## Components
 
 * **Training pipeline** – Prefect orchestrates data ingestion, feature engineering, target creation, model training and registration in MLflow.
 * **Models** – CatBoost (primary) and LightGBM (secondary), chosen based on PRC/ROC performance.
@@ -91,7 +91,7 @@ curl -X POST http://localhost:8000/predict \
 
 ---
 
-## 📊 Results
+## Results
 
 * **Best model:** CatBoost (AP ≈ 0.86, F1 ≈ 0.87).
 * **Business trade-off:** Recall prioritized (avoid missed failures) over precision (extra operational costs).
@@ -99,12 +99,13 @@ curl -X POST http://localhost:8000/predict \
 
 ---
 
-## 📖 Documentation
+## Documentation
 
 * [Technical Design Document (TDD)](docs/tdd.md)
 * [Design Notes (rationale & trade-offs)](docs/design_notes.md)
 * [Short Tech Report](docs/tech_report.md)
 * [System Architecture](docs/architecture.png)
+* [Walkthrough](docs/walkthrough.md)
 
 ---
 
@@ -117,6 +118,4 @@ Planned improvements (not included due to time constraints):
 * CI/CD with GitHub Actions.
 * Code linting & pre-commit hooks.
 
-```
 
----
