@@ -79,7 +79,9 @@ services:
       - ./app/tasks:/app/tasks
     depends_on:
       - prefect
+      - postgres
       - mlflow
+      - localstack
 
   inference:
     build:
