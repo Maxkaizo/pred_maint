@@ -1,0 +1,97 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:14
+    container_name: postgres
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    command: >
+      postgres -c max_connections=200
+
+  localstack:
+    image: localstack/localstack:latest
+    container_name: localstack
+    ports:
+      - "4566:4566"
+      - "4571:4571"
+    environment:
+      - SERVICES=s3
+      - DEBUG=1
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+      - DEFAULT_REGION=us-east-1
+      - PERSISTENCE=1
+    volumes:
+      - localstack_data:/var/lib/localstack
+      - "/var/run/docker.sock:/var/run/docker.sock"
+
+
+  mlflow:
+    build:
+      context: .
+      dockerfile: Dockerfile.mlflow
+    container_name: mlflow
+    ports:
+      - "5000:5000"
+    environment:
+      - MLFLOW_S3_ENDPOINT_URL=http://localstack:4566
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+    command: >
+      mlflow server
+      --backend-store-uri postgresql://admin:admin@postgres:5432/mlflow_db
+      --default-artifact-root s3://mlflow/
+      --host 0.0.0.0 --port 5000
+    depends_on:
+      - postgres
+      - localstack
+
+  prefect:
+    image: prefecthq/prefect:3.4-python3.9
+    container_name: prefect
+    command: prefect server start --host 0.0.0.0 --port 4200 --ui
+    ports:
+      - "4200:4200"
+    environment:
+      PREFECT_API_DATABASE_CONNECTION_URL: postgresql+asyncpg://admin:admin@postgres:5432/prefect_db
+    depends_on:
+      - postgres
+    volumes:
+      - ./app/flows:/opt/prefect/flows
+      - ./app/tasks:/opt/prefect/tasks
+
+  runner:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: runner
+    env_file:
+      - .env
+    volumes:
+      - ./app/flows:/app/flows
+      - ./app/tasks:/app/tasks
+    depends_on:
+      - prefect
+      - mlflow
+
+  inference:
+    build:
+      context: .
+      dockerfile: Dockerfile.inference
+    container_name: inference
+    env_file:
+      - .env
+    ports:
+      - "8000:8000"
+    depends_on:
+      - mlflow
+
+volumes:
+  postgres_data:
+  localstack_data:

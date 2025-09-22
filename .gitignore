@@ -1,0 +1,29 @@
+# Byte-compiled / cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+
+# Virtual environments
+.venv/
+env/
+venv/
+
+# Jupyter
+.ipynb_checkpoints
+
+# Data & artifacts
+data/
+mlruns/
+lab/
+*.csv
+*.parquet
+*.pkl
+*.joblib
+
+# Logs
+*.log
+
+# Secrets
+.keys/

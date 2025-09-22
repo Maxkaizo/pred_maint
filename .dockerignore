@@ -1,0 +1,28 @@
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+.venv/
+env/
+venv/
+
+# Jupyter
+.ipynb_checkpoints
+
+# Data & artifacts
+data/
+mlruns/
+lab/
+*.csv
+*.parquet
+*.pkl
+*.joblib
+
+# Secrets
+.keys/
