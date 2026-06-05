@@ -1,37 +1,57 @@
-import os
+from typing import Any, Dict
+
 import mlflow
 import pandas as pd
 from fastapi import FastAPI
-from pydantic import BaseModel
 from mlflow.tracking import MlflowClient
+from pydantic import BaseModel
 
 # MLflow model registry info
 MODEL_NAME = "catboost_pred_maintenance"
 MODEL_STAGE_TAG = "Staging"
 
+
 # ---------------------------
 # Load model by tag
 # ---------------------------
-def load_model_by_tag(model_name: str, tag_value: str):
+def load_model_by_tag(model_name: str, tag_value: str) -> Any:
+    """Loads a specific model version from MLflow based on a tag value.
+
+    Args:
+        model_name: The name of the registered model.
+        tag_value: The value of the 'stage' tag to look for.
+
+    Returns:
+        Any: The loaded MLflow pyfunc model.
+
+    Raises:
+        RuntimeError: If no model version with the specified tag is found.
+    """
     client = MlflowClient()
     versions = client.search_model_versions(f"name='{model_name}'")
     staging_versions = [v for v in versions if v.tags.get("stage") == tag_value]
 
     if not staging_versions:
-        raise RuntimeError(f"No versions of {model_name} found with tag stage={tag_value}")
+        raise RuntimeError(
+            f"No versions of {model_name} found with tag stage={tag_value}"
+        )
 
     latest = max(staging_versions, key=lambda v: int(v.version))
     model_uri = f"models:/{model_name}/{latest.version}"
     print(f"📂 Loading model from {model_uri} (tag={tag_value})")
     return mlflow.pyfunc.load_model(model_uri)
 
+
 # Load the model once at startup
 model = load_model_by_tag(MODEL_NAME, MODEL_STAGE_TAG)
 
 app = FastAPI(title="Predictive Maintenance Inference API")
 
+
 # --- Define schema with engineered features ---
 class Features(BaseModel):
+    """Pydantic model for validating inference input features."""
+
     volt: float
     rotate: float
     pressure: float
@@ -73,8 +93,17 @@ class Features(BaseModel):
     any_error_last24h: int
     any_maint_last24h: int
 
+
 @app.post("/predict")
-def predict(data: Features):
+def predict(data: Features) -> Dict[str, Any]:
+    """Exposes a REST endpoint for real-time failure prediction.
+
+    Args:
+        data: The input features for a single machine at a specific timestamp.
+
+    Returns:
+        Dict[str, Any]: A dictionary containing 'failure_probability' and 'decision'.
+    """
     # Convert input to DataFrame
     df = pd.DataFrame([data.dict()])
 
@@ -83,5 +112,5 @@ def predict(data: Features):
 
     return {
         "failure_probability": float(proba),
-        "decision": "dispatch_tech" if proba > 0.5 else "no_action"
+        "decision": "dispatch_tech" if proba > 0.5 else "no_action",
     }

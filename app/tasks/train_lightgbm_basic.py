@@ -1,11 +1,9 @@
 # tasks/train_lightgbm_basic.py
 
-import mlflow
 import lightgbm as lgb
-import numpy as np
-from sklearn.metrics import classification_report, f1_score, average_precision_score
+import mlflow
 from prefect import task
-
+from sklearn.metrics import average_precision_score, classification_report, f1_score
 
 RANDOM_SEED = 42
 

@@ -1,9 +1,9 @@
 # tasks/download_data.py
 
 import os
-import shutil
-import kagglehub
+
 import boto3
+import kagglehub
 from prefect import task
 
 

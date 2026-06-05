@@ -1,17 +1,24 @@
 # tasks/feature_engineering.py
 
 import os
-import boto3
-import pandas as pd
-import numpy as np
 from io import BytesIO
+from typing import Any, List
+
+import boto3
+import numpy as np
+import pandas as pd
 from prefect import task
 
 
 # ---------------------------
 # S3 Helpers
 # ---------------------------
-def s3_client():
+def s3_client() -> Any:
+    """Initializes and returns a boto3 S3 client using environment variables.
+
+    Returns:
+        Any: A boto3 S3 client instance.
+    """
     return boto3.client(
         "s3",
         endpoint_url=os.getenv("MLFLOW_S3_ENDPOINT_URL"),
@@ -22,12 +29,28 @@ def s3_client():
 
 
 def load_csv_from_s3(bucket: str, key: str) -> pd.DataFrame:
+    """Loads a CSV file from an S3 bucket into a pandas DataFrame.
+
+    Args:
+        bucket: The name of the S3 bucket.
+        key: The S3 key (path) to the CSV file.
+
+    Returns:
+        pd.DataFrame: The loaded dataset.
+    """
     s3 = s3_client()
     obj = s3.get_object(Bucket=bucket, Key=key)
     return pd.read_csv(obj["Body"])
 
 
-def save_parquet_to_s3(df: pd.DataFrame, bucket: str, key: str):
+def save_parquet_to_s3(df: pd.DataFrame, bucket: str, key: str) -> None:
+    """Saves a pandas DataFrame to an S3 bucket in Parquet format.
+
+    Args:
+        df: The DataFrame to save.
+        bucket: The name of the S3 bucket.
+        key: The S3 key (path) where the file will be saved.
+    """
     s3 = s3_client()
     buffer = BytesIO()
     df.to_parquet(buffer, index=False)
@@ -38,8 +61,14 @@ def save_parquet_to_s3(df: pd.DataFrame, bucket: str, key: str):
 # Core Feature Engineering Functions
 # ---------------------------
 def filter_preventive_maintenance(maintenance: pd.DataFrame, failures: pd.DataFrame) -> pd.DataFrame:
-    """
-    Remove reactive maintenance events by excluding records that coincide with failures.
+    """Removes reactive maintenance events by excluding records that coincide with failures.
+
+    Args:
+        maintenance: The maintenance events dataset.
+        failures: The failures dataset.
+
+    Returns:
+        pd.DataFrame: A filtered dataset containing only proactive maintenance.
     """
     maint_with_flag = maintenance.merge(
         failures[["datetime", "machineID", "failure"]],
@@ -55,10 +84,17 @@ def filter_preventive_maintenance(maintenance: pd.DataFrame, failures: pd.DataFr
     )
 
 
-def pivot_table_generic(df: pd.DataFrame, index: list, column: str, suffix: str) -> pd.DataFrame:
-    """
-    Generic pivot function that transforms categorical columns into binary flags.
-    Always applies suffix to avoid collisions after merge.
+def pivot_table_generic(df: pd.DataFrame, index: List[str], column: str, suffix: str) -> pd.DataFrame:
+    """Transforms categorical columns into binary flags using a pivot table.
+
+    Args:
+        df: The source DataFrame.
+        index: List of column names to use as index for the pivot.
+        column: The categorical column to pivot.
+        suffix: A suffix to add to the new binary columns.
+
+    Returns:
+        pd.DataFrame: The pivoted DataFrame with binary flags.
     """
     pivot = (
         df.assign(flag=1)
@@ -71,8 +107,13 @@ def pivot_table_generic(df: pd.DataFrame, index: list, column: str, suffix: str)
 
 
 def add_time_features(df: pd.DataFrame) -> pd.DataFrame:
-    """
-    Add calendar and cyclical time-based features.
+    """Adds calendar and cyclical time-based features to the DataFrame.
+
+    Args:
+        df: The dataset containing a 'datetime' column.
+
+    Returns:
+        pd.DataFrame: The dataset enriched with time-based features.
     """
     df["hour"] = df["datetime"].dt.hour
     df["dayofweek"] = df["datetime"].dt.dayofweek
@@ -87,9 +128,15 @@ def add_time_features(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def add_lag_rolling(df: pd.DataFrame, telemetry_cols: list) -> pd.DataFrame:
-    """
-    Add lag and rolling window features for telemetry signals.
+def add_lag_rolling(df: pd.DataFrame, telemetry_cols: List[str]) -> pd.DataFrame:
+    """Adds lag and rolling window features for telemetry signals.
+
+    Args:
+        df: The telemetry dataset.
+        telemetry_cols: List of sensor columns to process.
+
+    Returns:
+        pd.DataFrame: The dataset enriched with lag and rolling features.
     """
     df = df.sort_values(["machineID", "datetime"]).reset_index(drop=True)
     for col in telemetry_cols:
@@ -106,9 +153,13 @@ def add_lag_rolling(df: pd.DataFrame, telemetry_cols: list) -> pd.DataFrame:
 
 
 def add_global_flags(df: pd.DataFrame) -> pd.DataFrame:
-    """
-    Add global binary flags: any error, any maintenance, any failure.
-    Uses suffix convention (_error, _maint, _fail).
+    """Adds global binary flags indicating if any error, maintenance, or failure occurred.
+
+    Args:
+        df: The merged dataset.
+
+    Returns:
+        pd.DataFrame: The dataset enriched with global flags.
     """
     error_cols = [c for c in df.columns if c.endswith("_error")]
     maint_cols = [c for c in df.columns if c.endswith("_maint")]
@@ -121,8 +172,13 @@ def add_global_flags(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def add_recent_events(df: pd.DataFrame) -> pd.DataFrame:
-    """
-    Add rolling count of recent events over the past 24h.
+    """Adds rolling counts of recent events (errors, maintenance) over the past 24h.
+
+    Args:
+        df: The dataset with global flags.
+
+    Returns:
+        pd.DataFrame: The dataset enriched with recent event counts.
     """
     df = df.sort_values(["machineID", "datetime"]).reset_index(drop=True)
     df["any_error_last24h"] = (
@@ -145,14 +201,23 @@ def feature_engineering(
     input_prefix: str = "raw",
     output_prefix: str = "processed",
 ) -> str:
-    """
-    Main Prefect task for feature engineering:
-    - Load raw datasets from S3
-    - Filter preventive maintenance
-    - Pivot categorical columns into binary flags (with suffix)
-    - Merge all sources into a unified dataset
-    - Add time-based, telemetry, global, and recent-event features
-    - Save processed dataset back to S3
+    """Main Prefect task for the feature engineering pipeline.
+
+    This task orchestrates:
+    - Data loading from S3.
+    - Filtering of reactive maintenance.
+    - Pivoting of categorical events into binary flags.
+    - Integration of telemetry with event flags.
+    - Creation of time-based and rolling window features.
+    - Persistence of the final processed dataset to S3 in Parquet format.
+
+    Args:
+        bucket: The name of the S3 bucket where raw data is stored.
+        input_prefix: The S3 prefix for raw data files.
+        output_prefix: The S3 prefix where the processed dataset will be saved.
+
+    Returns:
+        str: The S3 URI of the processed dataset.
     """
     # Load raw datasets
     telemetry = load_csv_from_s3(bucket, f"{input_prefix}/PdM_telemetry.csv")

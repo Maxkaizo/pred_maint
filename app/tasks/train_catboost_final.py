@@ -1,21 +1,39 @@
 # tasks/train_catboost_final.py
 
+from typing import Any, Dict
+
 import mlflow
 import mlflow.catboost
-from mlflow.tracking import MlflowClient
 import pandas as pd
 from catboost import CatBoostClassifier
-from sklearn.metrics import average_precision_score, f1_score, classification_report
+from mlflow.tracking import MlflowClient
 from prefect import task
+from sklearn.metrics import average_precision_score, classification_report, f1_score
 
 RANDOM_SEED = 42
 
 
 @task(name="Train Final CatBoost Model")
-def train_catboost_final(df_train: pd.DataFrame, df_val: pd.DataFrame, df_test: pd.DataFrame, best_params: dict):
-    """
-    Train final CatBoost model using train+val (full_train) and evaluate on test.
-    The final model is logged and registered in MLflow.
+def train_catboost_final(
+    df_train: pd.DataFrame, df_val: pd.DataFrame, df_test: pd.DataFrame, best_params: Dict[str, Any]
+) -> Dict[str, Any]:
+    """Trains the final CatBoost model using train + validation sets and evaluates on test.
+
+    This task:
+    - Combines train and validation sets for final training.
+    - Trains a CatBoostClassifier with optimized hyperparameters.
+    - Evaluates performance on the held-out test set.
+    - Logs parameters, metrics (AP, F1), and artifacts to MLflow.
+    - Registers the model in the MLflow Model Registry and tags it as 'Staging'.
+
+    Args:
+        df_train: The training dataset.
+        df_val: The validation dataset.
+        df_test: The testing dataset.
+        best_params: Dictionary of optimized hyperparameters.
+
+    Returns:
+        Dict[str, Any]: A dictionary containing metrics and MLflow run/version info.
     """
 
     # ---------------------------
@@ -90,7 +108,7 @@ def train_catboost_final(df_train: pd.DataFrame, df_val: pd.DataFrame, df_test: 
             "catboost_pred_maintenance"
         )
 
-        # Add a stage tag        
+        # Add a stage tag
         client = MlflowClient()
         client.set_model_version_tag(
             name="catboost_pred_maintenance",

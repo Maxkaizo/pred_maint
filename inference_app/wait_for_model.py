@@ -1,8 +1,9 @@
 # wait_for_model.py
-import boto3
 import os
-import time
 import sys
+import time
+
+import boto3
 
 MODEL_NAME = "catboost_pred_maintenance"
 SIGNAL_BUCKET = "mlflow-signals"

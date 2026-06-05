@@ -1,12 +1,11 @@
 # tasks/train_lgbm.py
 
-import os
-import mlflow
 import lightgbm as lgb
+import mlflow
 import numpy as np
-from hyperopt import fmin, tpe, hp, Trials, STATUS_OK
-from sklearn.metrics import average_precision_score, f1_score
+from hyperopt import STATUS_OK, Trials, fmin, hp, tpe
 from prefect import task
+from sklearn.metrics import average_precision_score, f1_score
 
 RANDOM_SEED = 42
 

@@ -396,6 +396,11 @@ dependencies:
   - zlib=1.3.1
   - zstandard=0.25.0
   - zstd=1.5.7
+  - pydantic=2.11.7
+  - ruff=0.15.16
+  - pytest=9.0.3
+  - pytest-cov=7.1.0
+  - mypy=2.1.0
   - pip:
       - mplcyberpunk==0.7.6
 prefix: /home/maxkaizo/miniconda3/envs/walmart

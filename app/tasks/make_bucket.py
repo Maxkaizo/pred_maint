@@ -1,14 +1,20 @@
 # tasks/make_bucket.py
 
-import boto3
 import os
+
+import boto3
 from prefect import task
 
 
 @task(name="Make S3 Bucket")
-def make_bucket(bucket_name: str):
-    """
-    Validate or create an S3 bucket in Localstack/AWS.
+def make_bucket(bucket_name: str) -> str:
+    """Validates or creates an S3 bucket.
+
+    Args:
+        bucket_name: The name of the bucket to ensure exists.
+
+    Returns:
+        str: A message indicating the status of the bucket.
     """
     s3 = boto3.client(
         "s3",

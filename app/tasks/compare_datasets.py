@@ -1,9 +1,11 @@
 # tasks/compare_datasets.py (extended)
 import os
+from io import BytesIO
+
 import boto3
 import pandas as pd
-from io import BytesIO
 from prefect import task
+
 
 def s3_client():
     return boto3.client(

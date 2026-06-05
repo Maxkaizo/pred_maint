@@ -1,19 +1,31 @@
 # flows/main_pipeline.py
 
 from prefect import flow
-from tasks.make_bucket import make_bucket
+from tasks.create_future_target import create_targets
 from tasks.download_data import download_data
 from tasks.feature_engineering import feature_engineering
-from tasks.split_data import split_dataset
-from tasks.create_future_target import create_targets
-from tasks.train_lightgbm_hyperopt import train_lightgbm_hyperopt
-from tasks.train_catboost_hyperopt import train_catboost_hyperopt
-from tasks.train_catboost_final import train_catboost_final
+from tasks.make_bucket import make_bucket
 from tasks.post_signal import post_signal
+from tasks.split_data import split_dataset
+from tasks.train_catboost_final import train_catboost_final
+from tasks.train_catboost_hyperopt import train_catboost_hyperopt
+from tasks.train_lightgbm_hyperopt import train_lightgbm_hyperopt
 
 
 @flow(name="main_pipeline")
-def main_pipeline():
+def main_pipeline() -> None:
+    """Orchestrates the end-to-end Machine Learning pipeline.
+
+    This flow covers:
+    - S3 Bucket creation.
+    - Data ingestion from Kaggle.
+    - Feature engineering.
+    - Time-based data splitting.
+    - Future failure target creation.
+    - Hyperparameter optimization for LightGBM and CatBoost.
+    - Final model training and registration.
+    - Ready signal posting for inference.
+    """
     # Step 1: Ensure buckets exist
     make_bucket("datalake")
     make_bucket("artifacts")
@@ -31,7 +43,9 @@ def main_pipeline():
     # Step 4: Split dataset (in memory DataFrames)
     splits = split_dataset()
     df_train, df_val, df_test = splits["train"], splits["val"], splits["test"]
-    print(f"✅ Split completed: train={df_train.shape}, val={df_val.shape}, test={df_test.shape}")
+    print(
+        f"✅ Split completed | Train: {df_train.shape}, Val: {df_val.shape}, Test: {df_test.shape}"
+    )
 
     # Step 5: Create future target
     df_train, df_val, df_test = create_targets(df_train, df_val, df_test)

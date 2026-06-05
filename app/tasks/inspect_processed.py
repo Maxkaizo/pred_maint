@@ -1,31 +1,34 @@
 # tasks/inspect_processed.py
 
-import os
-import boto3
-import pandas as pd
 from io import BytesIO
+from typing import Any
+
+import pandas as pd
 from prefect import task
 
 
-def s3_client():
-    return boto3.client(
-        "s3",
-        endpoint_url=os.getenv("MLFLOW_S3_ENDPOINT_URL", "http://localstack:4566"),
-        aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID", "test"),
-        aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY", "test"),
-        region_name=os.getenv("AWS_DEFAULT_REGION", "us-east-1"),
-    )
+def s3_client() -> Any:
+    """Initializes and returns a boto3 S3 client.
 
-
+    Returns:
+        Any: A boto3 S3 client instance.
+    """
+...
 @task(name="Inspect Processed Dataset")
 def inspect_processed(
     bucket: str = "datalake",
     key: str = "processed/processed_dataset.parquet",
     n: int = 5,
-):
-    """
-    Load the processed dataset from S3 and print the first n rows
-    transposed for easier comparison with notebook results.
+) -> pd.DataFrame:
+    """Loads and prints a transposed preview of the processed dataset.
+
+    Args:
+        bucket: The name of the S3 bucket.
+        key: The S3 key (path) to the processed dataset.
+        n: Number of rows to preview.
+
+    Returns:
+        pd.DataFrame: A transposed preview of the first n rows.
     """
     s3 = s3_client()
     obj = s3.get_object(Bucket=bucket, Key=key)

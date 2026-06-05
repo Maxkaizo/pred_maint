@@ -1,14 +1,21 @@
 # tasks/post_signal.py
 
-import boto3
 import os
+
+import boto3
 from prefect import task
 
+
 @task(name="Post Ready Signal")
-def post_signal(model_name: str, version: str):
-    """
-    Uploads a signal file to S3/Localstack after training completes.
-    Inference service will watch for this file.
+def post_signal(model_name: str, version: str) -> str:
+    """Uploads a signal file to S3 indicating that a model is ready for inference.
+
+    Args:
+        model_name: The name of the registered model.
+        version: The version of the model that is ready.
+
+    Returns:
+        str: The S3 URI of the signal file.
     """
     s3 = boto3.client("s3", endpoint_url=os.getenv("MLFLOW_S3_ENDPOINT_URL"))
     bucket = "mlflow-signals"
