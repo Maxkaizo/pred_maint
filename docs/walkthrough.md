@@ -47,7 +47,7 @@ All containers are healthy.
 
 ---
 
-## 4. Inference API Demo
+### 4. Inference API Demo
 Finally, the trained model is served via a **REST API**.  
 
 Using `sample.json` as input:
@@ -55,7 +55,7 @@ Using `sample.json` as input:
 curl -X POST http://localhost:8000/predict \
      -H "Content-Type: application/json" \
      -d @sample.json
-````
+```
 
 Response:
 
@@ -68,11 +68,22 @@ Response:
 
 ✅ The inference container successfully loads the latest CatBoost model from the MLflow Registry and serves predictions.
 
-![Inference Request](inference_request.png)
+---
+
+## 5. Quality Assurance
+The codebase includes automated checks for linting, typing, and unit tests:
+```bash
+# Run linting
+uv run ruff check .
+
+# Run unit tests
+uv run pytest
+```
 
 ---
 
 ## ✅ Conclusion
+
 
 This walkthrough demonstrates:
 

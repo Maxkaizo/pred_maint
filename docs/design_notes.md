@@ -63,32 +63,33 @@ To justify design choices, we used **telecom field operations** as an analogy:
 - **Prefect:** orchestration of data ingestion, preprocessing, training.  
 - **MLflow:** experiment tracking, artifact storage, registry for serving.  
 - **Seeds:** fixed for reproducibility.  
-- **Deferred best practices:** linting (black), pre-commit hooks, CI checks → planned for roadmap.  
+- **Quality Standards:** Linting (Ruff), type hints, and automated testing (Pytest) implemented to ensure codebase reliability.
 
 ---
 
-## 7. Feature Engineering Decisions
+## 7. Environment & Infrastructure Decisions
+- **UV Migration:** Migrated from Conda to **UV** to achieve significantly faster virtual environment creation and deterministic dependency management via `uv.lock`.
+- **Python 3.14:** Updated to the latest stable Python version for improved performance and long-term support.
+- **MLflow v3.13:** Upgraded to MLflow 3.x for modern experiment tracking features and improved registry UI.
+
+---
+
+## 8. Feature Engineering Decisions
 - **Rolling features:** computed telemetry-based rolling statistics before merging with other datasets.  
 - **Reactive maintenance:** filtered out to avoid leakage (overlap with failures).  
+- **Target Logic Correction:** A critical bug in the future-failure window boundaries was identified via unit testing. The window is now correctly defined as `[t_fail - gap - horizon, t_fail - gap)` to ensure no overlap with the technician's arrival.
 - **Encoding:**  
   - Applied OneHotEncoding to `model` for comparability across algorithms.  
-  - Even though CatBoost can natively handle categories, OHE ensures consistency.  
-- **Scaling:** not applied (tree-based models are scale-invariant, magnitudes of features are comparable).  
+- **Scaling:** not applied (tree-based models are scale-invariant).  
 
 ---
 
-## 8. Model Selection Decision
+## 9. Model Selection Decision
 - Models evaluated: Dummy, Logistic Regression, LightGBM, CatBoost.  
 - **CatBoost:** highest AP (~0.86), best PR curve, chosen as main production candidate.  
 - **LightGBM:** AP ~0.66, selected as a strong alternative with lower computational cost.  
 - **Logistic Regression:** poor AP (~0.18), retained only as baseline.  
 - **Decision:** proceed with CatBoost (primary) and LightGBM (secondary).  
-
----
-
-## 9. MLflow Version
-- Chose **MLflow v2.x** for stability and maturity.  
-- v3 considered too recent; migration left as roadmap.  
 
 ---
 

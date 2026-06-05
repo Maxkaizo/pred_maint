@@ -51,21 +51,25 @@ The objective is not to build the most complex model, but to provide a **product
 - **Storage:** LocalStack (S3 emulation for datalake + MLflow artifacts).  
 - **Databases:** PostgreSQL for Prefect and MLflow metadata.  
 - **Model serving:** Dockerized inference container exposing REST API.  
-- **Reproducibility:** Python 3.11, `requirements.txt`, `Makefile`, containerized environment.  
+- **Reproducibility:** Python 3.14, `pyproject.toml` (UV), containerized environment.  
 
-![System Architecture](architecture.png)
+### System Architecture
+The system follows a modular, task-oriented design orchestrated by Prefect. Detailed flow diagrams (ML Pipeline and Inference) can be found in the [README.MD](../README.MD#system-architecture).
+
 ---
 
 ## 7. Reproducibility & Engineering Practices
 - **Automation:** end-to-end orchestration is covered by **Prefect flows** and **Docker Compose definitions**.  
   - Cloning the repository and running `docker compose up` spins up the full environment (databases, MLflow, Prefect, LocalStack, training pipeline, and inference API).  
-  - The user only needs to wait until the process finishes and can then validate predictions directly.  
-- **Repo structure:** modular Python scripts, organized by pipeline stage (ingestion, preprocessing, training, serving).  
+- **Quality Assurance:**
+  - **Static Analysis:** Code linting with **Ruff** and type checking with **Mypy**.
+  - **Automated Testing:** Unit test suite using **Pytest** with coverage reporting.
+  - **Data Validation:** Pydantic schemas for data integrity.
+- **Environment Management:** **UV** for fast, deterministic dependency resolution and locking (`uv.lock`).
 - **Versioning:** Git for source code, MLflow for experiments, parameters, and artifacts.  
-- **Deferred best practices (roadmap):**  
-  - Code linting and formatting with **black**.  
-  - Pre-commit hooks and GitHub Actions for CI/CD checks.  
+- **Roadmap:**
   - Continuous monitoring integration (Evidently + Prefect).
+  - CI/CD automation with GitHub Actions.
 
 ---
 
