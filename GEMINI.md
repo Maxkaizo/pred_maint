@@ -6,11 +6,11 @@ This project is an end-to-end Machine Learning Engineering solution for Predicti
 The project emphasizes MLOps best practices, including pipeline orchestration, experiment tracking, model versioning, and containerized deployment.
 
 ### Tech Stack
-- **Languages:** Python 3.13
-- **Orchestration:** Prefect 3.4
-- **Experiment Tracking:** MLflow 2.22
+- **Languages:** Python 3.14 (via UV)
+- **Orchestration:** Prefect 3.7
+- **Experiment Tracking:** MLflow 3.13
 - **Infrastructure:** Docker Compose, LocalStack (S3 emulation), PostgreSQL 14
-- **ML Frameworks:** CatBoost 1.2.8, LightGBM 4.6.0, Scikit-learn, Pandas
+- **ML Frameworks:** CatBoost 1.2.10, LightGBM 4.6.0, Scikit-learn, Pandas
 - **Inference:** FastAPI, Uvicorn
 
 ## Core Architecture
@@ -23,6 +23,7 @@ The project emphasizes MLOps best practices, including pipeline orchestration, e
 
 ### Prerequisites
 - Docker and Docker Compose
+- UV (for local development)
 - A `.env` file at the root (see `README.MD` for template)
 
 ### Key Commands
@@ -33,8 +34,8 @@ The project emphasizes MLOps best practices, including pipeline orchestration, e
 - **Trigger Pipeline (inside runner container):**
   The pipeline registers and runs automatically via `entrypoint.sh` on startup. To run manually:
   ```bash
-  conda run -n walmart python app/flows/main_pipeline.py
-  prefect deployment run "main_pipeline/pred-maintenance-pipeline"
+  uv run python app/flows/main_pipeline.py
+  uv run prefect deployment run "main_pipeline/pred-maintenance-pipeline"
   ```
 - **Test Inference:**
   ```bash
@@ -53,7 +54,7 @@ The project emphasizes MLOps best practices, including pipeline orchestration, e
 - `notebooks/`: EDA and experimentation.
 
 ### Environment Management
-The project uses Conda. The main environment is named `walmart` (defined in `environment.yml`).
+The project uses **UV**. Configuration is managed in `pyproject.toml` and dependencies are pinned in `uv.lock`.
 
 ### MLflow Model Promotion
 The final training task (`app/tasks/train_catboost_final.py`) automatically registers the model and sets the `stage` tag to `Staging`. The inference app loads the model based on this tag.

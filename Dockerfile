@@ -1,13 +1,21 @@
-FROM continuumio/miniconda3
+FROM ghcr.io/astral-sh/uv:python3.13-bookworm-slim
 
 WORKDIR /app
 
-# Copy environment file and install
-COPY environment.yml .
-RUN conda env create -f environment.yml -y && \
-    conda clean --all --yes
+# Enable bytecode compilation
+ENV UV_COMPILE_BYTECODE=1
+
+# Copy project files
+COPY pyproject.toml uv.lock /app/
+
+# Install dependencies
+RUN uv sync --frozen --no-dev
+
+# Copy application code
+COPY . /app
 
 COPY entrypoint.sh /app/entrypoint.sh
 RUN chmod +x /app/entrypoint.sh
 
-CMD ["./entrypoint.sh"]
+# Use uv run to execute within the virtual environment
+CMD ["/app/entrypoint.sh"]

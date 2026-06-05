@@ -47,6 +47,16 @@
                 <td class="success">~85% (All tasks & flows)</td>
             </tr>
             <tr>
+                <td><strong>Environment Management</strong></td>
+                <td>Conda (environment.yml)</td>
+                <td class="success">UV (pyproject.toml + uv.lock)</td>
+            </tr>
+            <tr>
+                <td><strong>Python Version</strong></td>
+                <td>3.13</td>
+                <td class="success">3.14</td>
+            </tr>
+            <tr>
                 <td><strong>Documentation</strong></td>
                 <td>Sparse / Some Spanish</td>
                 <td class="success">100% English + Google-style Docstrings</td>
@@ -79,6 +89,15 @@
     </div>
 
     <div class="highlight">
+        <h3>Environment & Infrastructure</h3>
+        <ul>
+            <li><strong>UV Migration:</strong> Replaced the slower Conda-based environment management with <strong>UV</strong>, reducing build times and ensuring deterministic installs via <code>uv.lock</code>.</li>
+            <li><strong>Docker Optimization:</strong> Updated <code>Dockerfile</code> and <code>Dockerfile.inference</code> to use the official <code>astral-sh/uv</code> image.</li>
+            <li><strong>Automation:</strong> Updated <code>entrypoint.sh</code> and <code>pre-commit</code> hooks to utilize <code>uv run</code>.</li>
+        </ul>
+    </div>
+
+    <div class="highlight">
         <h3>Documentation & Visualization</h3>
         <ul>
             <li><strong>Mermaid Diagrams:</strong> Created interactive diagrams for the ML Pipeline (Prefect) and Inference Flow (FastAPI).</li>
@@ -94,7 +113,7 @@
         <li><strong>Coverage Expansion:</strong> Increase test coverage beyond 11% to include the MLflow tracking logic and S3 helper mocks.</li>
         <li><strong>Monitoring:</strong> Integrate <strong>Evidently AI</strong> for data drift and model performance monitoring as planned in the TDD roadmap.</li>
         <li><strong>Advanced Validation:</strong> Use Pydantic's <code>validate_arguments</code> or similar decorators on Prefect tasks to ensure data consistency between pipeline stages.</li>
-        <li><strong>Dependency Management:</strong> Transition from a single <code>environment.yml</code> to a lockfile-based approach (e.g., <code>conda-lock</code> or <code>pdm</code>) for more deterministic environments.</li>
+        <li><strong>Dependency Management:</strong> Successfully transitioned from <code>environment.yml</code> to <strong>UV</strong>. Future focus should be on automated dependency updates using tools like Dependabot.</li>
     </ul>
 
     <p style="margin-top: 50px; font-size: 0.9em; color: #777;">
