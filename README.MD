@@ -50,7 +50,53 @@ Services included:
 * **Training pipeline** (runs automatically on startup)
 * **Inference API** (REST service for predictions at [http://localhost:8000](http://localhost:8000))
 
-![System Architecture](docs/architecture.png)
+### System Architecture
+
+#### Main ML Pipeline Flow (Prefect)
+
+```mermaid
+graph TD
+    Start((Start)) --> Buckets[make_bucket: datalake, artifacts, mlflow]
+    Buckets --> Download[download_data: Kaggle to S3]
+    Download --> FE[feature_engineering: Raw to Processed]
+    FE --> Split[split_dataset: Train, Val, Test]
+    Split --> Target[create_targets: Failure Window]
+    Target --> LGBM[train_lightgbm_hyperopt]
+    LGBM --> CB_Hyper[train_catboost_hyperopt]
+    CB_Hyper --> CB_Final[train_catboost_final]
+    CB_Final --> Signal[post_signal: Ready to inference]
+    Signal --> End((End))
+
+    subgraph "Experiment Tracking"
+        LGBM -.-> MLflow[(MLflow)]
+        CB_Hyper -.-> MLflow
+        CB_Final -.-> MLflow
+    end
+
+    subgraph "Storage"
+        Download -.-> S3[(LocalStack S3)]
+        FE -.-> S3
+    end
+```
+
+#### Inference Data Flow (FastAPI)
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant API as Inference API
+    participant MLflow as MLflow Registry
+    participant S3 as LocalStack S3
+
+    API->>MLflow: load_model_by_tag("Staging")
+    MLflow->>S3: Fetch Model Artifacts
+    S3-->>API: Model Loaded
+    
+    User->>API: POST /predict (Features)
+    API->>API: Preprocess Features
+    API->>API: Predict Probability
+    API-->>User: {"failure_probability": float, "decision": str}
+```
 
 ### 4. Test inference
 
@@ -78,7 +124,8 @@ curl -X POST http://localhost:8000/predict \
 ├── postgres-init/       # SQL init scripts for Postgres databases
 ├── docker-compose.yml   # Orchestration of all containers
 ├── Dockerfile*          # Container definitions (training, inference, mlflow)
-├── environment.yml      # Python environment (dependencies)
+├── pyproject.toml       # UV project configuration and dependencies
+├── uv.lock              # Pinned dependency lockfile
 └── sample.json          # Example payload for inference requests
 ```
 
@@ -91,6 +138,7 @@ curl -X POST http://localhost:8000/predict \
 * **Tracking** – MLflow stores runs, metrics, and artifacts.
 * **Storage** – LocalStack (S3 emulation) for datalake and artifacts.
 * **Deployment** – Inference container serving the model via REST API.
+* **Quality Assurance** – Automated linting (Ruff), type checking (Mypy), and unit testing (Pytest).
 
 ---
 
@@ -99,6 +147,7 @@ curl -X POST http://localhost:8000/predict \
 * **Best model:** CatBoost (AP ≈ 0.86, F1 ≈ 0.87).
 * **Business trade-off:** Recall prioritized (avoid missed failures) over precision (extra operational costs).
 * Performance curves and full analysis can be found in [`docs/performance_curves.png`](docs/performance_curves.png).
+* **GenAI Improvement Report:** A detailed summary of recent quality and architecture enhancements can be found in [`genai_improvement_report.html`](genai_improvement_report.html).
 
 ---
 
@@ -107,8 +156,8 @@ curl -X POST http://localhost:8000/predict \
 * [Technical Design Document (TDD)](docs/tdd.md)
 * [Design Notes (rationale & trade-offs)](docs/design_notes.md)
 * [Short Tech Report](docs/tech_report.md)
-* [System Architecture](docs/architecture.png)
 * [Walkthrough](docs/walkthrough.md)
+* [Instruction Context (GEMINI.md)](GEMINI.md)
 
 ---
 
